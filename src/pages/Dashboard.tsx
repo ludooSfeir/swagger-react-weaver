@@ -3,19 +3,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { getCategorizedTags, getEndpoints, getTagGroups, getTagInfo, swagger } from "@/lib/swagger";
 import { ActivitySquare, Database, FileText, Server, Tag, Bot, Shield, BarChart, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
+import DOMPurify from "dompurify";
 
 const Dashboard = () => {
   const endpoints = getEndpoints();
   const tagGroups = getTagGroups();
   const tags = Object.keys(tagGroups);
   const categorizedTags = getCategorizedTags();
-  
+
   // Count HTTP methods
   const methodCounts: Record<string, number> = {};
   endpoints.forEach(endpoint => {
     methodCounts[endpoint.method] = (methodCounts[endpoint.method] || 0) + 1;
   });
-  
+
   // Define category icons
   const categoryIcons: Record<string, React.ReactNode> = {
     'Database': <Database className="h-5 w-5" />,
@@ -27,7 +28,7 @@ const Dashboard = () => {
     'API': <Globe className="h-5 w-5" />,
     'Other': <Tag className="h-5 w-5" />
   };
-  
+
   return (
     <div className="space-y-6">
       <div>
@@ -36,7 +37,7 @@ const Dashboard = () => {
           API Explorer for {swagger.info.title} v{swagger.info.version}
         </p>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
@@ -51,7 +52,7 @@ const Dashboard = () => {
             <span className="text-xs text-muted-foreground">Swagger {swagger.swagger}</span>
           </CardFooter>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Resource Tags</CardTitle>
@@ -65,7 +66,7 @@ const Dashboard = () => {
             <span className="text-xs text-muted-foreground">Resource categories</span>
           </CardFooter>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Total Endpoints</CardTitle>
@@ -79,7 +80,7 @@ const Dashboard = () => {
             <span className="text-xs text-muted-foreground">API endpoints</span>
           </CardFooter>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base">HTTP Methods</CardTitle>
@@ -94,7 +95,7 @@ const Dashboard = () => {
           </CardFooter>
         </Card>
       </div>
-      
+
       {/* Categorized API Resources */}
       <div className="space-y-8">
         {Object.entries(categorizedTags).map(([category, categoryTags]) => (
@@ -121,8 +122,9 @@ const Dashboard = () => {
                       </CardHeader>
                       <CardContent>
                         {tagInfo?.description ? (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {tagInfo.description}
+                          <p className="text-sm text-muted-foreground line-clamp-2"
+                             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tagInfo.description) }}
+                          >
                           </p>
                         ) : (
                           <p className="text-sm text-muted-foreground">
