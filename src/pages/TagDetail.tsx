@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import EndpointList from "@/components/endpoints/EndpointList";
 import { getTagGroups, getTagInfo, Endpoint } from "@/lib/swagger";
@@ -6,13 +5,14 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CrudActions, { CrudAction } from "@/components/endpoints/CrudActions";
 import EndpointDetail from "@/components/endpoints/EndpointDetail";
+import DOMPurify from 'dompurify';
 
 const TagDetail = () => {
   const { tagName } = useParams<{ tagName: string }>();
   const tagGroups = getTagGroups();
   const [selectedEndpoint, setSelectedEndpoint] = useState<Endpoint | null>(null);
   const [crudAction, setCrudAction] = useState<CrudAction>('list');
-  
+
   if (!tagName || !tagGroups[tagName]) {
     return (
       <div className="text-center py-12">
@@ -23,10 +23,10 @@ const TagDetail = () => {
       </div>
     );
   }
-  
+
   const endpoints = tagGroups[tagName];
   const tagInfo = getTagInfo(tagName);
-  
+
   const handleEndpointSelect = (endpoint: Endpoint) => {
     setSelectedEndpoint(endpoint);
     setCrudAction('view');
@@ -50,27 +50,30 @@ const TagDetail = () => {
       setSelectedEndpoint(createEndpoint);
     }
   }
-  
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">{tagInfo?.name || tagName}</h1>
           {tagInfo?.description && (
-            <p className="text-muted-foreground">{tagInfo.description}</p>
+              <p
+                  className="text-muted-foreground"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(tagInfo.description) }}
+              />
           )}
         </div>
-        
-        <CrudActions 
+
+        <CrudActions
           currentAction={crudAction}
           onActionChange={handleCrudAction}
-          allowedActions={['list', 'create', ...(selectedEndpoint ? ['view', 'update', 'delete'] : [])]}
+          allowedActions={['list', 'create', 'view', 'update', 'delete']}
         />
       </div>
-      
+
       {crudAction === 'list' ? (
-        <EndpointList 
-          endpoints={endpoints} 
+        <EndpointList
+          endpoints={endpoints}
           onSelect={handleEndpointSelect}
         />
       ) : selectedEndpoint ? (

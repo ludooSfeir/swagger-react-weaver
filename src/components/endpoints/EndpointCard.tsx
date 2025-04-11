@@ -6,6 +6,7 @@ import { Endpoint, getOperationColor } from "@/lib/swagger";
 import { ChevronDown, ChevronUp, Play, Info } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import DOMPurify from 'dompurify';
 
 interface EndpointCardProps {
   endpoint: Endpoint;
@@ -15,13 +16,13 @@ interface EndpointCardProps {
 const EndpointCard = ({ endpoint, onSelect }: EndpointCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const operationColor = getOperationColor(endpoint.method);
-  
+
   const handleSelect = () => {
     if (onSelect) {
       onSelect(endpoint);
     }
   };
-  
+
   return (
     <Card className="overflow-hidden border-l-4" style={{ borderLeftColor: `var(--${operationColor})` }}>
       <Collapsible
@@ -32,7 +33,7 @@ const EndpointCard = ({ endpoint, onSelect }: EndpointCardProps) => {
         <CardHeader className="p-4 pb-2 flex flex-row items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span 
+              <span
                 className="text-xs font-bold text-white px-2 py-1 rounded uppercase"
                 style={{ backgroundColor: `var(--${operationColor})` }}
               >
@@ -43,7 +44,7 @@ const EndpointCard = ({ endpoint, onSelect }: EndpointCardProps) => {
               </CardTitle>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-1">
             {onSelect ? (
               <Button variant="ghost" size="sm" title="Select" onClick={handleSelect}>
@@ -63,17 +64,20 @@ const EndpointCard = ({ endpoint, onSelect }: EndpointCardProps) => {
             </CollapsibleTrigger>
           </div>
         </CardHeader>
-        
+
         <CollapsibleContent>
           <CardContent className="px-4 pb-4 pt-0">
             <div className="flex flex-col gap-4">
               {endpoint.description && (
                 <div>
                   <h4 className="font-medium mb-1">Description</h4>
-                  <p className="text-sm text-muted-foreground">{endpoint.description}</p>
+                  <p
+                      className="text-sm text-muted-foreground"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(endpoint.description) }}
+                  />
                 </div>
               )}
-              
+
               {endpoint.parameters && endpoint.parameters.length > 0 && (
                 <div>
                   <h4 className="font-medium mb-1">Parameters</h4>

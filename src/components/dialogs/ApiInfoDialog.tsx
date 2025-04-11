@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { ExternalLink, Globe, Mail, Phone } from "lucide-react";
 import { getSwaggerDefinition } from "@/lib/swagger";
+import DOMPurify from "dompurify";
 
 interface ApiInfoDialogProps {
   open: boolean;
@@ -18,23 +19,24 @@ interface ApiInfoDialogProps {
 
 const ApiInfoDialog = ({ open, onOpenChange }: ApiInfoDialogProps) => {
   const swagger = getSwaggerDefinition();
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{swagger.info.title}</DialogTitle>
-          <DialogDescription>
-            {swagger.info.description}
+          <DialogDescription
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(swagger.info.description) }}
+          >
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-6 py-4">
           <div className="flex items-center gap-2">
             <span className="font-semibold">Version:</span>
             <span>{swagger.info.version}</span>
           </div>
-          
+
           {/* Terms of Service - conditionally render if it exists */}
           {swagger.info.termsOfService && (
             <div>
@@ -47,7 +49,7 @@ const ApiInfoDialog = ({ open, onOpenChange }: ApiInfoDialogProps) => {
               </div>
             </div>
           )}
-          
+
           {/* Contact Info - conditionally render if it exists */}
           {swagger.info.contact && (
             <div>
@@ -58,7 +60,7 @@ const ApiInfoDialog = ({ open, onOpenChange }: ApiInfoDialogProps) => {
                     <span>{swagger.info.contact.name}</span>
                   </div>
                 )}
-                
+
                 {swagger.info.contact.url && (
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4" />
@@ -67,7 +69,7 @@ const ApiInfoDialog = ({ open, onOpenChange }: ApiInfoDialogProps) => {
                     </a>
                   </div>
                 )}
-                
+
                 {swagger.info.contact.email && (
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
@@ -79,7 +81,7 @@ const ApiInfoDialog = ({ open, onOpenChange }: ApiInfoDialogProps) => {
               </div>
             </div>
           )}
-          
+
           {/* License Info - conditionally render if it exists */}
           {swagger.info.license && (
             <div>
@@ -96,7 +98,7 @@ const ApiInfoDialog = ({ open, onOpenChange }: ApiInfoDialogProps) => {
               </div>
             </div>
           )}
-          
+
           <div>
             <h3 className="font-semibold mb-2">API Details</h3>
             <div className="space-y-2">
@@ -111,15 +113,15 @@ const ApiInfoDialog = ({ open, onOpenChange }: ApiInfoDialogProps) => {
               <div className="flex items-center gap-2">
                 <span className="font-medium">Schemes:</span>
                 <span>
-                  {swagger.schemes && swagger.schemes.length > 0 
-                    ? swagger.schemes.join(', ') 
+                  {swagger.schemes && swagger.schemes.length > 0
+                    ? swagger.schemes.join(', ')
                     : 'https (default)'}
                 </span>
               </div>
             </div>
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
