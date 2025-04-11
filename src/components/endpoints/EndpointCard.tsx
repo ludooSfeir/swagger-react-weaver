@@ -9,11 +9,18 @@ import { Link } from "react-router-dom";
 
 interface EndpointCardProps {
   endpoint: Endpoint;
+  onSelect?: (endpoint: Endpoint) => void;
 }
 
-const EndpointCard = ({ endpoint }: EndpointCardProps) => {
+const EndpointCard = ({ endpoint, onSelect }: EndpointCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const operationColor = getOperationColor(endpoint.method);
+  
+  const handleSelect = () => {
+    if (onSelect) {
+      onSelect(endpoint);
+    }
+  };
   
   return (
     <Card className="overflow-hidden border-l-4" style={{ borderLeftColor: `var(--${operationColor})` }}>
@@ -31,16 +38,24 @@ const EndpointCard = ({ endpoint }: EndpointCardProps) => {
               >
                 {endpoint.method}
               </span>
-              <CardTitle className="text-base font-medium">{endpoint.summary}</CardTitle>
+              <CardTitle className="text-base font-medium">
+                {endpoint.summary}
+              </CardTitle>
             </div>
           </div>
           
           <div className="flex items-center gap-1">
-            <Link to={`/endpoints/${endpoint.operationId}`}>
-              <Button variant="ghost" size="sm" title="Try it">
+            {onSelect ? (
+              <Button variant="ghost" size="sm" title="Select" onClick={handleSelect}>
                 <Play size={16} />
               </Button>
-            </Link>
+            ) : (
+              <Link to={`/endpoints/${endpoint.operationId}`}>
+                <Button variant="ghost" size="sm" title="Try it">
+                  <Play size={16} />
+                </Button>
+              </Link>
+            )}
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" title={isOpen ? "Show less" : "Show more"}>
                 {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -58,11 +73,6 @@ const EndpointCard = ({ endpoint }: EndpointCardProps) => {
                   <p className="text-sm text-muted-foreground">{endpoint.description}</p>
                 </div>
               )}
-              
-              <div>
-                <h4 className="font-medium mb-1">Endpoint</h4>
-                <code className="font-mono text-sm block p-2 bg-muted rounded">{endpoint.path}</code>
-              </div>
               
               {endpoint.parameters && endpoint.parameters.length > 0 && (
                 <div>

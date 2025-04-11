@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,11 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { executeApiRequest, generateInitialFormValues } from "@/lib/api-utils";
 import { Endpoint, getOperationColor } from "@/lib/swagger";
-import { ChevronLeft, Play, Save, Eye, Edit, Trash, List, Copy } from "lucide-react";
+import { ChevronLeft, Play, Save } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import EndpointForm from "./EndpointForm";
 import ResponseView from "./ResponseView";
+import CrudActions, { CrudAction } from "./CrudActions";
 
 interface EndpointDetailProps {
   endpoint: Endpoint;
@@ -23,8 +23,23 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
   );
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<'view' | 'edit' | 'add'>('edit');
+  const [crudAction, setCrudAction] = useState<CrudAction>('update');
   const operationColor = getOperationColor(endpoint.method);
+  
+  const getDefaultCrudAction = (method: string): CrudAction => {
+    switch (method.toLowerCase()) {
+      case 'get': return 'view';
+      case 'post': return 'create';
+      case 'put':
+      case 'patch': return 'update';
+      case 'delete': return 'delete';
+      default: return 'view';
+    }
+  };
+
+  useState(() => {
+    setCrudAction(getDefaultCrudAction(endpoint.method));
+  });
   
   const handleChange = (name: string, value: any) => {
     setFormValues((prev) => ({
@@ -64,7 +79,6 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
   };
 
   const copyAsCurl = () => {
-    // Simple implementation - could be enhanced
     const curlCommand = `curl -X ${endpoint.method.toUpperCase()} "https://api.example.com${endpoint.path}"`;
     navigator.clipboard.writeText(curlCommand);
     toast({
@@ -72,68 +86,60 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
       description: "CURL command copied to clipboard"
     });
   };
+
+  const getAllowedActions = (): CrudAction[] => {
+    return ['list', 'create', 'view', 'update', 'delete'];
+  };
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link to={`/tags/${endpoint.tags[0] || ''}`}>
-          <Button variant="ghost" size="sm">
-            <ChevronLeft className="mr-1 h-4 w-4" />
-            Back
-          </Button>
-        </Link>
-        
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span 
-              className="text-xs font-bold text-white px-2 py-1 rounded uppercase"
-              style={{ backgroundColor: `var(--${operationColor})` }}
-            >
-              {endpoint.method}
-            </span>
-            <h1 className="text-xl font-semibold">{endpoint.summary}</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link to={`/tags/${endpoint.tags[0] || ''}`}>
+            <Button variant="ghost" size="sm">
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              Back
+            </Button>
+          </Link>
+          
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span 
+                className="text-xs font-bold text-white px-2 py-1 rounded uppercase"
+                style={{ backgroundColor: `var(--${operationColor})` }}
+              >
+                {endpoint.method}
+              </span>
+              <h1 className="text-xl font-semibold">{endpoint.summary}</h1>
+            </div>
+            {endpoint.description && (
+              <p className="text-sm text-muted-foreground mt-1">{endpoint.description}</p>
+            )}
           </div>
-          {endpoint.description && (
-            <p className="text-sm text-muted-foreground mt-1">{endpoint.description}</p>
-          )}
         </div>
+        
+        <CrudActions 
+          currentAction={crudAction} 
+          onActionChange={setCrudAction} 
+          allowedActions={getAllowedActions()}
+        />
       </div>
       
       <Card>
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-base">Request Parameters</CardTitle>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setMode('view')}
-                className={mode === 'view' ? 'bg-muted' : ''}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setMode('edit')}
-                className={mode === 'edit' ? 'bg-muted' : ''}
-              >
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={copyAsCurl}
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                Copy cURL
-              </Button>
-            </div>
+            <CardTitle className="text-base">
+              {crudAction === 'view' ? 'View Details' : 
+               crudAction === 'update' ? 'Edit Details' :
+               crudAction === 'create' ? 'Create New' :
+               crudAction === 'delete' ? 'Delete Confirmation' : 'List Items'}
+            </CardTitle>
           </div>
           <CardDescription>
-            Fill in the parameters to make a request
+            {crudAction === 'view' ? 'View the resource details' : 
+             crudAction === 'update' ? 'Modify the resource properties' :
+             crudAction === 'create' ? 'Create a new resource' :
+             crudAction === 'delete' ? 'Confirm resource deletion' : 'Browse available resources'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -141,18 +147,22 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
             endpoint={endpoint} 
             formValues={formValues} 
             onChange={handleChange}
-            readOnly={mode === 'view'}
+            readOnly={crudAction === 'view' || crudAction === 'delete'}
           />
           
           <div className="mt-6 flex justify-end">
-            <Button 
-              onClick={handleSubmit} 
-              disabled={isLoading || mode === 'view'}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Play className="mr-2 h-4 w-4" />
-              Execute Request
-            </Button>
+            {crudAction !== 'list' && (
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isLoading || crudAction === 'view'}
+                className={`${crudAction === 'delete' ? 'bg-destructive hover:bg-destructive/90' : 'bg-primary hover:bg-primary/90'}`}
+              >
+                <Play className="mr-2 h-4 w-4" />
+                {crudAction === 'create' ? 'Create' :
+                 crudAction === 'update' ? 'Update' :
+                 crudAction === 'delete' ? 'Delete' : 'Execute'}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
