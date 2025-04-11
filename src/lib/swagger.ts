@@ -1,4 +1,3 @@
-
 import swaggerFile from '../../swagger.json';
 
 export interface SwaggerDefinition {
@@ -122,13 +121,17 @@ export function getTagGroups(): Record<string, Endpoint[]> {
 export function getCategorizedTags(): Record<string, string[]> {
   // Define categories and associated tags
   const categories: Record<string, string[]> = {
-    'Database': ['postgres', 'mysql', 'redis', 'mongodb'],
-    'Server': ['server', 'nginx', 'apache'],
-    'Kubernetes': ['kubernetes', 'k8s', 'container'],
-    'Storage': ['storage', 's3', 'blob'],
-    'Authentication': ['auth', 'oauth', 'users'],
-    'Monitoring': ['monitoring', 'logging', 'metrics'],
-    'API': ['rest', 'graphql', 'soap']
+    'Database': [
+      'postgres', 'mysql', 'redis', 'mongodb', 
+      'mssql', 'sybase', 'oracleitc', 'oracle dbaas', 'oracle container',
+      'database', 'sql', 'nosql'
+    ],
+    'Server': ['server', 'nginx', 'apache', 'webserver'],
+    'Kubernetes': ['kubernetes', 'k8s', 'container', 'pod', 'deployment'],
+    'Storage': ['storage', 's3', 'blob', 'filesystems', 'volumes'],
+    'Authentication': ['auth', 'oauth', 'users', 'identity', 'security'],
+    'Monitoring': ['monitoring', 'logging', 'metrics', 'tracing', 'alerts'],
+    'API': ['rest', 'graphql', 'soap', 'endpoints']
   };
   
   // Get all available tags from the Swagger definition
