@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { executeApiRequest, generateInitialFormValues } from "@/lib/api-utils";
 import { Endpoint, getOperationColor } from "@/lib/swagger";
-import { ChevronLeft, Play } from "lucide-react";
+import { ChevronLeft, Play, Save, Eye, Edit, Trash, List, Copy } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import EndpointForm from "./EndpointForm";
@@ -23,6 +23,7 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
   );
   const [response, setResponse] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<'view' | 'edit' | 'add'>('edit');
   const operationColor = getOperationColor(endpoint.method);
   
   const handleChange = (name: string, value: any) => {
@@ -61,6 +62,16 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
       setIsLoading(false);
     }
   };
+
+  const copyAsCurl = () => {
+    // Simple implementation - could be enhanced
+    const curlCommand = `curl -X ${endpoint.method.toUpperCase()} "https://api.example.com${endpoint.path}"`;
+    navigator.clipboard.writeText(curlCommand);
+    toast({
+      title: "Copied to clipboard",
+      description: "CURL command copied to clipboard"
+    });
+  };
   
   return (
     <div className="space-y-6">
@@ -80,75 +91,75 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
             >
               {endpoint.method}
             </span>
-            <code className="font-mono text-sm">{endpoint.path}</code>
+            <h1 className="text-xl font-semibold">{endpoint.summary}</h1>
           </div>
-          <h1 className="text-xl font-semibold">{endpoint.summary}</h1>
           {endpoint.description && (
             <p className="text-sm text-muted-foreground mt-1">{endpoint.description}</p>
           )}
         </div>
       </div>
       
-      <Tabs defaultValue="form" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="form">Form</TabsTrigger>
-          <TabsTrigger value="curl">CURL</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="form" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Request Parameters</CardTitle>
-              <CardDescription>
-                Fill in the parameters to make a request
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EndpointForm 
-                endpoint={endpoint} 
-                formValues={formValues} 
-                onChange={handleChange}
-              />
-              
-              <div className="mt-6 flex justify-end">
-                <Button 
-                  onClick={handleSubmit} 
-                  disabled={isLoading}
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  <Play className="mr-2 h-4 w-4" />
-                  Execute Request
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-base">Request Parameters</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setMode('view')}
+                className={mode === 'view' ? 'bg-muted' : ''}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                View
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setMode('edit')}
+                className={mode === 'edit' ? 'bg-muted' : ''}
+              >
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={copyAsCurl}
+              >
+                <Copy className="h-4 w-4 mr-1" />
+                Copy cURL
+              </Button>
+            </div>
+          </div>
+          <CardDescription>
+            Fill in the parameters to make a request
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EndpointForm 
+            endpoint={endpoint} 
+            formValues={formValues} 
+            onChange={handleChange}
+            readOnly={mode === 'view'}
+          />
           
-          {response && (
-            <ResponseView response={response} />
-          )}
-        </TabsContent>
-        
-        <TabsContent value="curl">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">CURL Command</CardTitle>
-              <CardDescription>
-                Copy and use this command to make the request outside the application
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea 
-                readOnly
-                className="font-mono text-sm h-24"
-                value={`curl -X ${endpoint.method.toUpperCase()} "https://api.example.com${endpoint.path}"`}
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                Note: This is a simplified CURL command. Parameters need to be added manually.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          <div className="mt-6 flex justify-end">
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isLoading || mode === 'view'}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Play className="mr-2 h-4 w-4" />
+              Execute Request
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {response && (
+        <ResponseView response={response} />
+      )}
     </div>
   );
 };

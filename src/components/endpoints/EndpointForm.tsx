@@ -10,9 +10,10 @@ interface EndpointFormProps {
   endpoint: Endpoint;
   formValues: Record<string, any>;
   onChange: (name: string, value: any) => void;
+  readOnly?: boolean;
 }
 
-const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => {
+const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: EndpointFormProps) => {
   const hasParameters = endpoint.parameters && endpoint.parameters.length > 0;
   
   if (!hasParameters) {
@@ -51,6 +52,8 @@ const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => 
             }}
             className="font-mono"
             rows={10}
+            readOnly={readOnly}
+            disabled={readOnly}
           />
         );
       }
@@ -60,6 +63,7 @@ const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => 
           <Switch
             checked={Boolean(value)}
             onCheckedChange={(checked) => onChange(param.name, checked)}
+            disabled={readOnly}
           />
         );
       }
@@ -71,6 +75,8 @@ const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => 
             onChange={(e) => onChange(param.name, e.target.value.split('\n'))}
             placeholder="One value per line"
             rows={3}
+            readOnly={readOnly}
+            disabled={readOnly}
           />
         );
       }
@@ -82,6 +88,7 @@ const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => 
           <Select
             value={String(value || '')}
             onValueChange={(val) => onChange(param.name, val)}
+            disabled={readOnly}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select an option" />
@@ -107,6 +114,8 @@ const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => 
               : e.target.value;
             onChange(param.name, newValue);
           }}
+          readOnly={readOnly}
+          disabled={readOnly}
         />
       );
     };

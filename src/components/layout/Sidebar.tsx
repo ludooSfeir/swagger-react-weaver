@@ -17,7 +17,8 @@ import {
   BarChart, 
   Globe, 
   ChevronDown,
-  ChevronRight 
+  ChevronRight,
+  Hash
 } from "lucide-react";
 import { useState } from "react";
 
@@ -34,8 +35,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
     // Start with all categories expanded
     const expanded: Record<string, boolean> = {};
     Object.keys(categorizedTags).forEach(category => {
-      expanded[category] = true;
+      expanded[category] = false; // Default to collapsed for a more compact UI
     });
+    
+    // Expand the current category if we're on a tag page
+    if (location.pathname.startsWith('/tags/')) {
+      const currentTag = location.pathname.split('/').pop() || '';
+      
+      // Find which category the current tag belongs to
+      Object.entries(categorizedTags).forEach(([category, tags]) => {
+        if (tags.includes(currentTag)) {
+          expanded[category] = true;
+        }
+      });
+    }
+    
     return expanded;
   });
   
@@ -63,7 +77,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       "fixed inset-y-0 left-0 z-20 flex w-64 flex-col border-r bg-background transition-transform duration-300 md:translate-x-0",
       isOpen ? "translate-x-0" : "-translate-x-full"
     )}>
-      <ScrollArea className="flex-1 px-4 py-6">
+      <ScrollArea className="flex-1 px-2 py-4">
         <div className="space-y-4">
           <div>
             <Link to="/">
@@ -79,6 +93,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
               <Button 
                 variant={location.pathname === "/" ? "default" : "ghost"} 
                 className="w-full justify-start"
+                size="sm"
               >
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 Dashboard
@@ -86,51 +101,56 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
             </Link>
           </div>
           
-          <div className="space-y-2">
-            <h3 className="px-2 text-sm font-semibold tracking-tight">
+          <div className="space-y-1">
+            <h3 className="px-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               API Resources
             </h3>
             
-            {Object.entries(categorizedTags).map(([category, tags]) => (
-              <div key={category} className="space-y-1">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-between py-1 px-2 h-auto font-medium"
-                  onClick={() => toggleCategory(category)}
-                >
-                  <div className="flex items-center">
-                    {categoryIcons[category] || <Tag className="mr-2 h-4 w-4" />}
-                    <span className="ml-2">{category}</span>
-                  </div>
-                  {expandedCategories[category] ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
+            {Object.entries(categorizedTags).map(([category, tags]) => {
+              const isActiveCategory = tags.some(tag => location.pathname === `/tags/${tag}`);
+              
+              return (
+                <div key={category} className="space-y-1 py-1">
+                  <Button
+                    variant={isActiveCategory ? "secondary" : "ghost"}
+                    className="w-full justify-between py-1 px-2 h-8"
+                    onClick={() => toggleCategory(category)}
+                    size="sm"
+                  >
+                    <div className="flex items-center">
+                      {categoryIcons[category] || <Tag className="mr-2 h-4 w-4" />}
+                      <span className="ml-2 text-sm">{category}</span>
+                    </div>
+                    {expandedCategories[category] ? (
+                      <ChevronDown className="h-3 w-3 opacity-70" />
+                    ) : (
+                      <ChevronRight className="h-3 w-3 opacity-70" />
+                    )}
+                  </Button>
+                  
+                  {expandedCategories[category] && (
+                    <div className="ml-6 space-y-1">
+                      {tags.map(tag => {
+                        const tagInfo = getTagInfo(tag);
+                        const isActive = location.pathname === `/tags/${tag}`;
+                        return (
+                          <Link key={tag} to={`/tags/${tag}`}>
+                            <Button
+                              variant={isActive ? "default" : "ghost"}
+                              className="w-full justify-start h-7 text-xs"
+                              size="sm"
+                            >
+                              <Hash className="mr-1 h-3 w-3" />
+                              {tagInfo?.name || tag}
+                            </Button>
+                          </Link>
+                        );
+                      })}
+                    </div>
                   )}
-                </Button>
-                
-                {expandedCategories[category] && (
-                  <div className="ml-4 space-y-1 pl-2 border-l">
-                    {tags.map(tag => {
-                      const tagInfo = getTagInfo(tag);
-                      const isActive = location.pathname === `/tags/${tag}`;
-                      return (
-                        <Link key={tag} to={`/tags/${tag}`}>
-                          <Button
-                            variant={isActive ? "default" : "ghost"}
-                            className="w-full justify-start"
-                            size="sm"
-                          >
-                            <Tag className="mr-2 h-3 w-3" />
-                            {tagInfo?.name || tag}
-                          </Button>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </ScrollArea>

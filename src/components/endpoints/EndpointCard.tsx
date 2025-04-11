@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Endpoint, getOperationColor } from "@/lib/swagger";
-import { ChevronDown, ChevronUp, Play } from "lucide-react";
+import { ChevronDown, ChevronUp, Play, Info } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -31,21 +31,22 @@ const EndpointCard = ({ endpoint }: EndpointCardProps) => {
               >
                 {endpoint.method}
               </span>
-              <code className="font-mono text-sm">{endpoint.path}</code>
+              <CardTitle className="text-base font-medium">{endpoint.summary}</CardTitle>
             </div>
-            <CardTitle className="text-base font-medium">{endpoint.summary}</CardTitle>
-            {endpoint.description && (
-              <CardDescription className="line-clamp-2 mt-1">
-                {endpoint.description}
-              </CardDescription>
-            )}
           </div>
           
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm">
-              {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </Button>
-          </CollapsibleTrigger>
+          <div className="flex items-center gap-1">
+            <Link to={`/endpoints/${endpoint.operationId}`}>
+              <Button variant="ghost" size="sm" title="Try it">
+                <Play size={16} />
+              </Button>
+            </Link>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" title={isOpen ? "Show less" : "Show more"}>
+                {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
         </CardHeader>
         
         <CollapsibleContent>
@@ -57,6 +58,11 @@ const EndpointCard = ({ endpoint }: EndpointCardProps) => {
                   <p className="text-sm text-muted-foreground">{endpoint.description}</p>
                 </div>
               )}
+              
+              <div>
+                <h4 className="font-medium mb-1">Endpoint</h4>
+                <code className="font-mono text-sm block p-2 bg-muted rounded">{endpoint.path}</code>
+              </div>
               
               {endpoint.parameters && endpoint.parameters.length > 0 && (
                 <div>
@@ -81,15 +87,6 @@ const EndpointCard = ({ endpoint }: EndpointCardProps) => {
                   </div>
                 </div>
               )}
-              
-              <div className="flex justify-end">
-                <Link to={`/endpoints/${endpoint.operationId}`}>
-                  <Button size="sm">
-                    <Play className="mr-2 h-4 w-4" />
-                    Try it
-                  </Button>
-                </Link>
-              </div>
             </div>
           </CardContent>
         </CollapsibleContent>
