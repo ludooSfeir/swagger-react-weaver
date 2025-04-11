@@ -1,5 +1,5 @@
 
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import { Endpoint, getBaseUrl, getDefaultValueForType } from "./swagger";
 
 export async function executeApiRequest(endpoint: Endpoint, formData: any) {

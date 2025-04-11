@@ -1,4 +1,3 @@
-
 import swaggerFile from '../../swagger.json';
 
 export interface SwaggerDefinition {
@@ -112,13 +111,15 @@ export function getTagInfo(tagName: string): { name: string, description: string
   return swagger.tags.find(tag => tag.name === tagName);
 }
 
+export function getSwaggerDefinition(): SwaggerDefinition {
+  return swagger;
+}
+
 export function getBaseUrl(): string {
-  let url = '';
-  if (swagger.host) {
-    const scheme = swagger.schemes ? swagger.schemes[0] : 'https';
-    url = `${scheme}://${swagger.host}${swagger.basePath || ''}`;
-  }
-  return url;
+  const swagger = getSwaggerDefinition();
+  // Handle the case where schemes doesn't exist
+  const scheme = swagger.schemes && swagger.schemes.length > 0 ? swagger.schemes[0] : 'https';
+  return `${scheme}://${swagger.host || 'api.example.com'}${swagger.basePath || ''}`;
 }
 
 export function getDefinitionExample(ref: string): any {

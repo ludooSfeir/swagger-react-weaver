@@ -75,7 +75,9 @@ const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => 
         );
       }
       
-      if (param.enum) {
+      // Check if param has enum values, safely
+      const paramEnum = (param as any).enum;
+      if (paramEnum && Array.isArray(paramEnum)) {
         return (
           <Select
             value={String(value || '')}
@@ -85,7 +87,7 @@ const EndpointForm = ({ endpoint, formValues, onChange }: EndpointFormProps) => 
               <SelectValue placeholder="Select an option" />
             </SelectTrigger>
             <SelectContent>
-              {param.enum.map((option) => (
+              {paramEnum.map((option: string) => (
                 <SelectItem key={option} value={option}>
                   {option}
                 </SelectItem>
