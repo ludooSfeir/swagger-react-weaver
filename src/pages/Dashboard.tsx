@@ -1,19 +1,32 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { getEndpoints, getTagGroups, swagger } from "@/lib/swagger";
-import { ActivitySquare, FileText, Server, Tag } from "lucide-react";
+import { getCategorizedTags, getEndpoints, getTagGroups, getTagInfo, swagger } from "@/lib/swagger";
+import { ActivitySquare, Database, FileText, Server, Tag, Bot, Shield, BarChart, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const endpoints = getEndpoints();
   const tagGroups = getTagGroups();
   const tags = Object.keys(tagGroups);
+  const categorizedTags = getCategorizedTags();
   
   // Count HTTP methods
   const methodCounts: Record<string, number> = {};
   endpoints.forEach(endpoint => {
     methodCounts[endpoint.method] = (methodCounts[endpoint.method] || 0) + 1;
   });
+  
+  // Define category icons
+  const categoryIcons: Record<string, React.ReactNode> = {
+    'Database': <Database className="h-5 w-5" />,
+    'Server': <Server className="h-5 w-5" />,
+    'Kubernetes': <Bot className="h-5 w-5" />,
+    'Storage': <Database className="h-5 w-5" />,
+    'Authentication': <Shield className="h-5 w-5" />,
+    'Monitoring': <BarChart className="h-5 w-5" />,
+    'API': <Globe className="h-5 w-5" />,
+    'Other': <Tag className="h-5 w-5" />
+  };
   
   return (
     <div className="space-y-6">
@@ -82,33 +95,48 @@ const Dashboard = () => {
         </Card>
       </div>
       
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">API Resources</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {tags.map(tag => {
-            const endpoints = tagGroups[tag];
-            return (
-              <Link key={tag} to={`/tags/${tag}`}>
-                <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Tag className="h-5 w-5" />
-                      {tag}
-                    </CardTitle>
-                    <CardDescription>
-                      {endpoints.length} endpoint{endpoints.length !== 1 ? 's' : ''}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      {endpoints.map(e => e.method).join(', ')}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
+      {/* Categorized API Resources */}
+      <div className="space-y-8">
+        {Object.entries(categorizedTags).map(([category, categoryTags]) => (
+          <div key={category} className="space-y-4">
+            <div className="flex items-center gap-2">
+              {categoryIcons[category]}
+              <h2 className="text-xl font-semibold">{category}</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {categoryTags.map(tag => {
+                const endpoints = tagGroups[tag];
+                const tagInfo = getTagInfo(tag);
+                return (
+                  <Link key={tag} to={`/tags/${tag}`}>
+                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Tag className="h-5 w-5" />
+                          {tagInfo?.name || tag}
+                        </CardTitle>
+                        <CardDescription>
+                          {endpoints.length} endpoint{endpoints.length !== 1 ? 's' : ''}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {tagInfo?.description ? (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {tagInfo.description}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            {endpoints.map(e => e.method).join(', ')}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

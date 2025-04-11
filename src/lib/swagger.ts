@@ -1,3 +1,4 @@
+
 import swaggerFile from '../../swagger.json';
 
 export interface SwaggerDefinition {
@@ -6,9 +7,20 @@ export interface SwaggerDefinition {
     title: string;
     description: string;
     version: string;
+    termsOfService?: string;
+    contact?: {
+      name?: string;
+      url?: string;
+      email?: string;
+    };
+    license?: {
+      name?: string;
+      url?: string;
+    };
   };
   host: string;
   basePath: string;
+  schemes?: string[];
   tags: {
     name: string;
     description: string;
@@ -105,6 +117,58 @@ export function getTagGroups(): Record<string, Endpoint[]> {
   });
   
   return tagGroups;
+}
+
+export function getCategorizedTags(): Record<string, string[]> {
+  // Define categories and associated tags
+  const categories: Record<string, string[]> = {
+    'Database': ['postgres', 'mysql', 'redis', 'mongodb'],
+    'Server': ['server', 'nginx', 'apache'],
+    'Kubernetes': ['kubernetes', 'k8s', 'container'],
+    'Storage': ['storage', 's3', 'blob'],
+    'Authentication': ['auth', 'oauth', 'users'],
+    'Monitoring': ['monitoring', 'logging', 'metrics'],
+    'API': ['rest', 'graphql', 'soap']
+  };
+  
+  // Get all available tags from the Swagger definition
+  const availableTags = getTagGroups();
+  const tagNames = Object.keys(availableTags);
+  
+  // Categorize tags based on the defined categories
+  const categorizedTags: Record<string, string[]> = {};
+  
+  // First, try to categorize existing tags
+  Object.entries(categories).forEach(([category, relatedTags]) => {
+    categorizedTags[category] = [];
+    
+    tagNames.forEach(tag => {
+      // Check if this tag belongs to the current category
+      const normalizedTag = tag.toLowerCase();
+      const belongsToCategory = relatedTags.some(relatedTag => 
+        normalizedTag.includes(relatedTag) || 
+        relatedTag.includes(normalizedTag)
+      );
+      
+      if (belongsToCategory) {
+        categorizedTags[category].push(tag);
+      }
+    });
+  });
+  
+  // Add "Other" category for uncategorized tags
+  categorizedTags['Other'] = tagNames.filter(tag => {
+    return !Object.values(categorizedTags).flat().includes(tag);
+  });
+  
+  // Remove empty categories
+  Object.keys(categorizedTags).forEach(category => {
+    if (categorizedTags[category].length === 0) {
+      delete categorizedTags[category];
+    }
+  });
+  
+  return categorizedTags;
 }
 
 export function getTagInfo(tagName: string): { name: string, description: string } | undefined {
