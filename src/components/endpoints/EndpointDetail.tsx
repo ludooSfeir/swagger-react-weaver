@@ -1,17 +1,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { executeApiRequest, generateInitialFormValues } from "@/lib/api-utils";
 import { Endpoint, getOperationColor } from "@/lib/swagger";
 import { ChevronLeft, Play, Save } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import EndpointForm from "./EndpointForm";
-import ResponseView from "./ResponseView";
-import CrudActions, { CrudAction } from "./CrudActions";
+import { CrudAction } from "./CrudActions";
+import ListDataView from "./ListDataView";
 
 interface EndpointDetailProps {
   endpoint: Endpoint;
@@ -47,6 +44,11 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
     } else if (method === 'delete') {
       setCrudAction('delete');
     }
+
+    // Auto-fetch for list and view operations
+    if ((crudAction === 'list' || crudAction === 'view') && method === 'get') {
+      handleSubmit();
+    }
   }, [endpoint]);
   
   const handleChange = (name: string, value: any) => {
@@ -68,7 +70,8 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
           description: "The request failed. Check the response for details.",
           variant: "destructive",
         });
-      } else {
+      } else if (crudAction !== 'list') {
+        // Only show success toast for non-list operations
         toast({
           title: `Success ${result.status}`,
           description: "Request completed successfully!",
@@ -130,7 +133,7 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
           />
           
           <div className="mt-6 flex justify-end">
-            {crudAction !== 'list' && crudAction !== 'view' && (
+            {crudAction !== 'list' && (
               <Button 
                 onClick={handleSubmit} 
                 disabled={isLoading}
@@ -142,21 +145,36 @@ const EndpointDetail = ({ endpoint }: EndpointDetailProps) => {
                  crudAction === 'delete' ? 'Delete' : 'Execute'}
               </Button>
             )}
-            {(crudAction === 'list' || crudAction === 'view') && (
-              <Button 
-                onClick={handleSubmit} 
-                variant="outline"
-              >
-                <Play className="mr-2 h-4 w-4" />
-                Fetch Data
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
       
-      {response && (
-        <ResponseView response={response} />
+      {crudAction === 'list' && response && (
+        <ListDataView response={response} entityName={entityName} />
+      )}
+      
+      {crudAction !== 'list' && response && response.error && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error {response.status}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{response.error}</p>
+          </CardContent>
+        </Card>
+      )}
+      
+      {crudAction !== 'list' && response && !response.error && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Response</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="bg-muted p-4 rounded overflow-auto max-h-80">
+              {JSON.stringify(response.data, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
