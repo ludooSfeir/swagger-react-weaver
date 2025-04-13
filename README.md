@@ -1,3 +1,4 @@
+
 # Welcome to your Lovable project
 
 ## Project info
@@ -62,7 +63,24 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/670f224b-40c9-4c39-8f86-ae36a9948168) and click on Share -> Publish.
+### Deploying to GitHub Pages
+
+This project is configured to deploy to GitHub Pages through GitHub Actions:
+
+1. Push your code to the main branch of your GitHub repository
+2. GitHub Actions will automatically build and deploy your app
+3. Your app will be available at `https://<your-github-username>.github.io/<repository-name>/`
+
+To set up GitHub Pages deployment:
+
+1. Go to your GitHub repository
+2. Navigate to Settings > Pages
+3. Under "Source", select "GitHub Actions"
+4. That's it! The workflow will handle the rest
+
+### Deploying through Lovable
+
+You can also deploy through Lovable by clicking on Share -> Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 
