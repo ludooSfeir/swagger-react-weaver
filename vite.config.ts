@@ -21,6 +21,5 @@ export default defineConfig(({ mode }) => ({
     },
   },
   // Base path for GitHub Pages - will use the repo name from CI
-  // base: '/',
   base: process.env.GITHUB_REPOSITORY ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}/` : '/',
 }));
