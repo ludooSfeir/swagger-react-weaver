@@ -1,10 +1,12 @@
 
-import { FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Endpoint } from "@/lib/swagger";
 import { Switch } from "@/components/ui/switch";
+import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 interface EndpointFormProps {
   endpoint: Endpoint;
@@ -15,6 +17,21 @@ interface EndpointFormProps {
 
 const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: EndpointFormProps) => {
   const hasParameters = endpoint.parameters && endpoint.parameters.length > 0;
+  
+  // Initialize the form
+  const form = useForm({
+    defaultValues: formValues
+  });
+
+  // Update form values when the external formValues change
+  useEffect(() => {
+    form.reset(formValues);
+  }, [formValues, form]);
+  
+  // Update external state when form values change
+  const handleValueChange = (name: string, value: any) => {
+    onChange(name, value);
+  };
   
   if (!hasParameters) {
     return (
@@ -45,9 +62,9 @@ const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: Endp
             onChange={(e) => {
               try {
                 const parsedValue = JSON.parse(e.target.value);
-                onChange(param.name, parsedValue);
+                handleValueChange(param.name, parsedValue);
               } catch {
-                onChange(param.name, e.target.value);
+                handleValueChange(param.name, e.target.value);
               }
             }}
             className="font-mono"
@@ -62,7 +79,7 @@ const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: Endp
         return (
           <Switch
             checked={Boolean(value)}
-            onCheckedChange={(checked) => onChange(param.name, checked)}
+            onCheckedChange={(checked) => handleValueChange(param.name, checked)}
             disabled={readOnly}
           />
         );
@@ -72,7 +89,7 @@ const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: Endp
         return (
           <Textarea
             value={Array.isArray(value) ? value.join('\n') : String(value || '')}
-            onChange={(e) => onChange(param.name, e.target.value.split('\n'))}
+            onChange={(e) => handleValueChange(param.name, e.target.value.split('\n'))}
             placeholder="One value per line"
             rows={3}
             readOnly={readOnly}
@@ -87,7 +104,7 @@ const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: Endp
         return (
           <Select
             value={String(value || '')}
-            onValueChange={(val) => onChange(param.name, val)}
+            onValueChange={(val) => handleValueChange(param.name, val)}
             disabled={readOnly}
           >
             <SelectTrigger>
@@ -112,7 +129,7 @@ const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: Endp
             const newValue = param.type === 'number' || param.type === 'integer'
               ? parseFloat(e.target.value)
               : e.target.value;
-            onChange(param.name, newValue);
+            handleValueChange(param.name, newValue);
           }}
           readOnly={readOnly}
           disabled={readOnly}
@@ -121,36 +138,36 @@ const EndpointForm = ({ endpoint, formValues, onChange, readOnly = false }: Endp
     };
     
     return (
-      <FormField
-        key={param.name}
-        name={param.name}
-        render={() => (
-          <FormItem className="mb-4">
-            <FormLabel>
-              {param.name}
-              {param.required && <span className="text-red-500 ml-1">*</span>}
-            </FormLabel>
-            <FormControl>{renderInput()}</FormControl>
-            {param.description && (
-              <FormDescription>{param.description}</FormDescription>
-            )}
-          </FormItem>
-        )}
-      />
+      <div key={param.name} className="mb-4">
+        <div className="flex flex-col">
+          <div className="font-medium">
+            {param.name}
+            {param.required && <span className="text-red-500 ml-1">*</span>}
+          </div>
+          <div className="mt-1">
+            {renderInput()}
+          </div>
+          {param.description && (
+            <p className="text-sm text-muted-foreground mt-1">{param.description}</p>
+          )}
+        </div>
+      </div>
     );
   };
   
   return (
-    <div className="space-y-6">
-      {Object.entries(paramGroups).map(([group, params]) => (
-        <div key={group} className="space-y-4">
-          <h3 className="text-sm font-medium capitalize">{group} Parameters</h3>
-          <div className="space-y-2">
-            {params.map(renderFormField)}
+    <Form {...form}>
+      <div className="space-y-6">
+        {Object.entries(paramGroups).map(([group, params]) => (
+          <div key={group} className="space-y-4">
+            <h3 className="text-sm font-medium capitalize">{group} Parameters</h3>
+            <div className="space-y-2">
+              {params.map(renderFormField)}
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    </Form>
   );
 };
 
