@@ -3,6 +3,8 @@
 
 ## Project info
 
+**Demo** : https://ludoosfeir.github.io/swagger-react-weaver
+
 **URL**: https://lovable.dev/projects/670f224b-40c9-4c39-8f86-ae36a9948168
 
 ## How can I edit this code?
