@@ -29,6 +29,22 @@ const Dashboard = () => {
     'Other': <Tag className="h-5 w-5" />
   };
 
+  // Calculate entity counts per tag
+  const getEntityCount = (tagName: string): number => {
+    const endpoints = tagGroups[tagName];
+    if (!endpoints || endpoints.length === 0) return 0;
+    
+    const entityGroups: Set<string> = new Set();
+    
+    endpoints.forEach(endpoint => {
+      // Normalize path by removing trailing IDs
+      const normalizedPath = endpoint.path.replace(/\/\{[^}]+\}$/g, '');
+      entityGroups.add(normalizedPath);
+    });
+    
+    return entityGroups.size;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -108,6 +124,8 @@ const Dashboard = () => {
               {categoryTags.map(tag => {
                 const endpoints = tagGroups[tag];
                 const tagInfo = getTagInfo(tag);
+                const entityCount = getEntityCount(tag);
+                
                 return (
                   <Link key={tag} to={`/tags/${tag}`}>
                     <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
@@ -117,7 +135,7 @@ const Dashboard = () => {
                           {tagInfo?.name || tag}
                         </CardTitle>
                         <CardDescription>
-                          {endpoints.length} endpoint{endpoints.length !== 1 ? 's' : ''}
+                          {entityCount} entit{entityCount !== 1 ? 'ies' : 'y'} ({endpoints.length} endpoint{endpoints.length !== 1 ? 's' : ''})
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
