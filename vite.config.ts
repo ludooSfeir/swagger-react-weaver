@@ -24,7 +24,13 @@ export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? '/swagger-react-weaver/' : '/',
   build: { 
     chunkSizeWarningLimit: 2000,
-    // Ensure we output an index.html at the root level
+    // Output configuration
     outDir: 'dist',
+    emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
+    },
   },
 }));
