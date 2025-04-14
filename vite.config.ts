@@ -22,5 +22,6 @@ export default defineConfig(({ mode }) => ({
   },
   // Base path for GitHub Pages - will use the repo name from CI
   // base: process.env.GITHUB_REPOSITORY ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}/` : '/',
-  base: '/swagger-react-weaver/',
+  base: mode === 'production' ? '/swagger-react-weaver/' : '/',
+  build: { chunkSizeWarningLimit: 2000 },
 }));
