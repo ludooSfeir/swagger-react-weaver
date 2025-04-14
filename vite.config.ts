@@ -23,11 +23,10 @@ export default defineConfig(({ mode }) => ({
   // Base path for GitHub Pages - set properly based on repo name
   // base: mode === 'production' ? '/swagger-react-weaver/' : '/',
   base: '/swagger-react-weaver/',
-  // base: '/',
   build: {
     chunkSizeWarningLimit: 2000,
     // Output configuration
-    // outDir: 'dist',
+    outDir: 'dist',
     // emptyOutDir: true,
     // rollupOptions: {
     //   input: {

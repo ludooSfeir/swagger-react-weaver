@@ -17,7 +17,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/swagger-react-weaver">
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
